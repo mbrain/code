@@ -50,7 +50,6 @@ if(isset($_GET['url']) && !empty($_GET['url'])) {
             $g[]=$h;
         }
         echo json_encode($g,JSON_PRETTY_PRINT);
-       // var_dump( $g[1]["quality"],true);
     }
 }else{
     @$myObj->error = true;
