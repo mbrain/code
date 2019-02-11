@@ -24,18 +24,18 @@
  */
 #ifdef _WIN32
 DWORD WINAPI process_thread(LPVOID lpParam) {
-    SOCKET current_client = (SOCKET)lpParam;
+    SOCKET fd = (SOCKET)lpParam;
 #else
 void process_thread(int sock) {
-    int current_client = sock;
+    int fd = sock;
 #endif
     char buf[1024];
     int res;       
     while(1) {       
-        res = recv(current_client, buf, 1024, 0);          
+        res = recv(fd, buf, 1024, 0);          
         if(res>1) {
-            buf[strlen(buf)] = '\0';
-            send(current_client, buf, strlen(buf), 0);
+            buf[res] = '\0';
+            send(fd, buf, res, 0);
         }       
     }    
 }
