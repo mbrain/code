@@ -29,7 +29,6 @@ DWORD WINAPI process_thread(LPVOID lpParam) {
 void process_thread(int sock) {
     int current_client = sock;
 #endif
-    printf("[***] clientthread spawned\n");
     char buf[1024];
     int res;       
     while(1) {       
@@ -73,7 +72,6 @@ int main( int argc, char *argv[]) {
         len = sizeof(client);
         fd = accept(sock, (struct sockaddr*)&client, &len);
         if(fd>0) {
-            printf("[***] new client\n");
             #ifdef _WIN32
             CreateThread(NULL, 0, process_thread, (LPVOID)fd, 0, &thread);
             #else
