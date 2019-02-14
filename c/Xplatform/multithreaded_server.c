@@ -4,11 +4,10 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <time.h>
-
-#ifdef _WIN32 /* Windows */
+#ifdef _WIN32 
 #include <winsock.h>
 #include <io.h>
-#else /* UNIX/Linux */
+#else 
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -16,33 +15,36 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #endif
-
 #define RCVBUFSIZE 1024
 
-/**
- * Thread Handler
- */
+struct process_thread_info {
+    struct sockaddr_in client;
+    #ifdef _WIN32
+    SOCKET fd;
+    #else
+    int fd;
+    #endif
+};
+
 #ifdef _WIN32
 DWORD WINAPI process_thread(LPVOID lpParam) {
-    SOCKET fd = (SOCKET)lpParam;
 #else
-void process_thread(int sock) {
-    int fd = sock;
+void process_thread(void lpParam) {
 #endif
+    struct process_thread_info *threadinfo = (struct process_thread_info *) lpParam;
+    printf("[***] new connection established from: %s:%d\n", inet_ntoa(threadinfo->client.sin_addr), (int)ntohs(threadinfo->client.sin_port));    
     char buf[1024];
     int res;       
     while(1) {       
-        res = recv(fd, buf, 1024, 0);          
+        res = recv(threadinfo->fd, buf, 1024, 0);          
         if(res>1) {
             buf[res] = '\0';
-            send(fd, buf, res, 0);
+            send(threadinfo->fd, buf, res, 0);
         }       
-    }    
-}
+    }
+    free(threadinfo); 
+}                                                                                      
 
-/**
- * Main
- */
 int main( int argc, char *argv[]) {
     int port = port = atoi(argv[1]);
     struct sockaddr_in server, client;
@@ -70,14 +72,16 @@ int main( int argc, char *argv[]) {
     #endif
     while(1) {
         len = sizeof(client);
-        fd = accept(sock, (struct sockaddr*)&client, &len);
-        if(fd>0) {
-            #ifdef _WIN32
-            CreateThread(NULL, 0, process_thread, (LPVOID)fd, 0, &thread);
-            #else
-            pthread_create( &thread , NULL , process_thread , (int)fd);
-            #endif
-        }
+        fd = accept(sock, (struct sockaddr*)&client, &len);        
+        if(fd<0) continue;        
+        struct process_thread_info *threadinfo = malloc(sizeof(struct process_thread_info));
+        threadinfo->fd = fd;
+        threadinfo->client = client;        
+        #ifdef _WIN32
+        if(!CreateThread(NULL, 0, process_thread, threadinfo, 0, &thread)) free(threadinfo);
+        #else
+        if(!pthread_create( &thread , NULL , process_thread , threadinfo)) free(threadinfo);
+        #endif
     }
     #ifdef _WIN32
     closesocket(fd);
