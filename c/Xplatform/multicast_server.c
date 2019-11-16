@@ -1,17 +1,3 @@
-//
-// Simple sender.c program for UDP
-//
-// Adapted from:
-// http://ntrg.cs.tcd.ie/undergrad/4ba2/multicast/antony/example.html
-//
-// Changes:
-// * Compiles for Windows as well as Linux
-// * Takes the port and group on the command line
-//
-// Note that what this program does should be equivalent to NETCAT:
-//
-//     echo "Hello World" | nc -u 239.255.255.250 1900
-
 #ifdef _WIN32
     #include <Winsock2.h> // before Windows.h, else Winsock 1 conflict
     #include <Ws2tcpip.h> // needed for ip_mreq definition for multicast
