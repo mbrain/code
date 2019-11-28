@@ -29,7 +29,7 @@ struct process_thread_info {
 #ifdef _WIN32
 DWORD WINAPI process_thread(LPVOID lpParam) {
 #else
-void process_thread(void lpParam) {
+void process_thread(void* lpParam) {
 #endif
     struct process_thread_info *threadinfo = (struct process_thread_info *) lpParam;
     printf("[***] new connection established from: %s:%d\n", inet_ntoa(threadinfo->client.sin_addr), (int)ntohs(threadinfo->client.sin_port));    
