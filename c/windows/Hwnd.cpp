@@ -176,7 +176,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             SetWindowText(textBoxInput, "");
             SetFocus(textBoxInput);
  
-            return 0; //break;            
+            return 0; //break;
+        case WM_CLOSE:
+      		if(MessageBox(hwnd,"Do you want to quit?","Exit",MB_OKCANCEL)==IDOK) {
+      			DestroyWindow(hwnd);
+      			break;
+      		}
+		    else return 0;
         default:
             // see https://wiki.winehq.org/List_Of_Windows_Messages
             //if( lParam ) printf("%d\n", lParam);
