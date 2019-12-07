@@ -10,8 +10,15 @@ static HWND textBoxInput;
 static HWND button;
 static HWND myButton;
 static HWND textBoxOutput;
+static HWND listBox;
+static HWND comboBox;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+HWND CreateHwnd (HWND hwndParent) {
+    HWND item = CreateWindowEx( WS_EX_CLIENTEDGE, "Button", "Test", WS_CHILD | WS_VISIBLE, 10, 41, 75, 30, hwndParent, NULL, NULL, NULL); 
+    return (item);
+}
 
 void test() {
     for(int i = 0; i < 100000; i++) printf("%d\n", i);
@@ -23,16 +30,18 @@ char *timestamp(){
     ltime=time(NULL);
     struct tm *tm;
     tm=localtime(&ltime);    
-    //sprintf(timestamp,"%04d%02d%02d%02d%02d%02d", tm->tm_year+1900, tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
     sprintf(timestamp,"%02d:%02d:%02d", tm->tm_hour, tm->tm_min, tm->tm_sec);
     return timestamp;  
 }
 
+int callbackCounter = 0;
+
 void CALLBACK f(HWND hwnd, UINT uMsg, UINT timerId, DWORD dwTime) {
   char *ts = timestamp();
   strcat(ts, " LOG ENTRY\n");
-  SendMessage(hwnd, WM_MOD, 0, (LPARAM)ts);
+  if(callbackCounter%11==0 || callbackCounter == 0) SendMessage(hwnd, WM_MOD, 0, (LPARAM)ts);
   free(ts);
+  callbackCounter++;
 }
 
 int CALLBACK WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR cmdLine,int nCmdShow)
@@ -50,17 +59,33 @@ int CALLBACK WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR cmdLine,i
     wc.hbrBackground = static_cast<HBRUSH>((HBRUSH)25);
     RegisterClass(&wc);
 
-    hMainWindow = CreateWindow(wc.lpszClassName,"Logger (Demo)",WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,CW_USEDEFAULT,CW_USEDEFAULT,530,400,NULL,NULL,hInstance,NULL);
-
+    hMainWindow = CreateWindow(wc.lpszClassName,"Client GUI (Demo)",WS_OVERLAPPEDWINDOW | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,CW_USEDEFAULT,CW_USEDEFAULT,525,370,NULL,NULL,hInstance,NULL);
+    
     int error = GetLastError();
     if(hMainWindow == NULL) return 1;
 
-    textBoxInput = CreateWindowEx(WS_EX_CLIENTEDGE, "Edit", "",WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_WANTRETURN , 10, 10, 300, 21, hMainWindow, NULL, NULL, NULL);    
-    button = CreateWindowEx(WS_EX_CLIENTEDGE,"Button","Replace", WS_CHILD | WS_VISIBLE , 10, 41,75,30,hMainWindow,NULL,NULL,NULL);    
-    myButton = CreateWindowEx(WS_EX_CLIENTEDGE,"Button","Append", WS_CHILD | WS_VISIBLE, 91, 41,75,30,hMainWindow,NULL,NULL,NULL);         
-    textBoxOutput = CreateWindowEx(WS_EX_CLIENTEDGE,"EDIT",TEXT(""), WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_AUTOVSCROLL |  ES_MULTILINE | ES_READONLY ,10,121,500,90,hMainWindow,NULL,NULL,NULL);
+    textBoxInput = CreateWindowEx(
+        WS_EX_CLIENTEDGE, // style
+        "Edit", // name of class
+        "", // text when first created
+        WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL | ES_WANTRETURN, // options
+        10, 10, 500, 21, // size and position
+        hMainWindow, // handle to parent window
+        NULL, // handle to child window identifier
+        NULL, // handle to application instance
+        NULL); // no window creation data    
+    //button = CreateWindowEx(WS_EX_CLIENTEDGE,"Button","Replace", WS_CHILD | WS_VISIBLE , 10, 41,75,30,hMainWindow,NULL,NULL,NULL);             
+    textBoxOutput = CreateWindowEx(WS_EX_CLIENTEDGE,"EDIT", "", WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_AUTOVSCROLL |  ES_MULTILINE | ES_READONLY ,10,40,500,90,hMainWindow,NULL,NULL,NULL);
     //MessageBox(hMainWindow, "Could not create edit box.", "Error", MB_OK | MB_ICONERROR);
-    
+    listBox = CreateWindowEx(WS_EX_CLIENTEDGE, "listbox", "", WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_AUTOVSCROLL, 10, 140, 100, 60, hMainWindow, NULL, NULL, NULL);
+    SendMessage(listBox, LB_ADDSTRING, 0, (LPARAM)"name");
+    SendMessage(listBox, LB_ADDSTRING, 0, (LPARAM)"alter");
+    SendMessage(listBox, LB_ADDSTRING, 0, (LPARAM)"rang");    
+    comboBox = CreateWindowEx(WS_EX_CLIENTEDGE, "COMBOBOX", "", CBS_DROPDOWN | WS_CHILD | WS_VISIBLE, 120, 140, 50, 50, hMainWindow, NULL, NULL, NULL);
+    SendMessage(comboBox, CB_ADDSTRING, 0, (LPARAM)"Hiii");
+
+    // HWND listView = null;
+        
     RECT rc;
     GetClientRect(hMainWindow, &rc);
     //InflateRect(&rc,-120,-120);
@@ -71,15 +96,16 @@ int CALLBACK WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR cmdLine,i
 
     MSG msg = { };
 
-    SetTimer(hMainWindow, 0, 5000,(TIMERPROC) &f);
-    
+    SetTimer(hMainWindow, 0, 1000,(TIMERPROC) &f);
     while(GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
         // data from msg
         if (msg.message == WM_KEYDOWN) {
-            printf("key down %d\n", msg.wParam);
-            if(msg.wParam == 13) SendMessage (hMainWindow, WM_MOD2, 0, (LPARAM)"Message sent!\n");
+            if(msg.wParam == 13) {
+                SendMessage (hMainWindow, WM_MOD2, 0, (LPARAM)"Message sent!\n");
+                printf("key down %d\n", msg.wParam);
+            }
         }
     }
 
@@ -118,10 +144,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             exit(0);
             return 0;
         case WM_MOVE:
-            printf("moved");
+            printf("moved to %d:%d\n", LOWORD(lParam), HIWORD(lParam));
             break;
         case WM_SIZE:
-            printf("resized");
+            printf("resized to %dx%d\n", LOWORD(lParam), HIWORD(lParam));
             break;
         case WM_MOUSEMOVE:
             //printf("mouse moved");
