@@ -15,6 +15,7 @@ char *readUrl2(char *szUrl, long &bytesReturnedOut, char **headerOut);
 
 int main(int argc, char *argv[]) {
 
+    if(argc < 2) { printf("WGET for windows\nAuthor: Manuel Zarat\n\nUsage: %s <url> [<filename>]\n", argv[0]); return 1; }
     const int bufLen = 1024;
     char *szUrl = argv[1];
     long fileSize;
