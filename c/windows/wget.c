@@ -26,11 +26,16 @@ int main(int argc, char *argv[]) {
     if ( WSAStartup(0x101, &wsaData) != 0) return -1;
     memBuffer = readUrl2(szUrl, fileSize, &headerBuffer);
     if (fileSize != 0) {
-        fp = fopen(argv[2], "wb");
-        fwrite(memBuffer, 1, fileSize, fp);
-        fclose(fp);
-        delete(memBuffer);
-        delete(headerBuffer);
+        if(argc<3) { 
+            printf(memBuffer);
+        }
+        else {
+            fp = fopen(argv[2], "wb");
+            fwrite(memBuffer, 1, fileSize, fp);
+            fclose(fp);
+            delete(memBuffer);
+            delete(headerBuffer);
+        }
     }
     WSACleanup();
     return 0;
